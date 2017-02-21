@@ -6,7 +6,7 @@ local ln2_cst = math.log(2)
 local SpaceSaving = {}
 
 
-local function SimpleRateBucket ()
+local function SimpleRateBucket()
     return {
         key       = "",
         count     = 0,
@@ -18,8 +18,7 @@ local function SimpleRateBucket ()
     }
 end
 
-
-local function SimpleRate (size, halfLife)
+local function SimpleRate(size, halfLife)
     local out = {
         max = size,
         olist = {},
@@ -28,20 +27,14 @@ local function SimpleRate (size, halfLife)
         halfLife = halfLife,
     }
 
-    for i=1, size do
-        out.olist[i] = SimpleRateBucket()
-    end
-
     return out
 end
 
-
-function SpaceSaving:new (size, halfLife)
+function SpaceSaving:new(size, halfLife)
     local o    = SimpleRate(size, halfLife)
     local self = setmetatable(o, {__index = SpaceSaving})
     return self
 end
-
 
 function SpaceSaving:count(rate, lastTs, nowTs)
     local deltaNs = nowTs - lastTs
@@ -54,11 +47,9 @@ function SpaceSaving:count(rate, lastTs, nowTs)
     return rate * weight
 end
 
-
 function SpaceSaving:recount(rate, lastTs, nowTs)
     return rate * math_exp((nowTs - lastTs) * self.weightHelper)
 end
-
 
 function SpaceSaving:touch(key, nowTs)
     local olist = self.olist
@@ -70,6 +61,7 @@ function SpaceSaving:touch(key, nowTs)
         bucket = olist[bucketno]
     else
         bucketno = 1
+        olist[bucketno] = SimpleRateBucket()
         bucket = olist[bucketno]
 
         if hash[bucket.key] then
@@ -82,12 +74,16 @@ function SpaceSaving:touch(key, nowTs)
             key, bucket.lastTs, bucket.rate
     end
 
-    bucket.rate = self:count(bucket.rate, bucket.lastTs, nowTs)
+    if bucket.lastTs ~= 0 then
+        bucket.rate = self:count(bucket.rate, bucket.lastTs, nowTs)
+    end
+
     bucket.lastTs = nowTs
 
+    local list_len = #olist
+
     while true do
-        local list_len = #olist
-        if bucketno == (list_len-1) then
+        if bucketno == list_len then
             break
         end
 
@@ -107,11 +103,9 @@ function SpaceSaving:touch(key, nowTs)
     end
 end
 
-
 function SpaceSaving:getAll(nowTs)
     local olist = self.olist
     local elements = {}
-    print(#olist)
     for i = #olist, 1, -1 do
         local b = olist[i]
         if b.key ~= "" then
@@ -129,7 +123,6 @@ function SpaceSaving:getAll(nowTs)
 
     return elements
 end
-
 
 function SpaceSaving:getSingle(key, nowTs)
     local olist = self.olist
