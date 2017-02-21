@@ -18,6 +18,7 @@ local function SimpleRateBucket ()
     }
 end
 
+
 local function SimpleRate (size, halfLife)
     local out = {
         max = size,
@@ -34,11 +35,13 @@ local function SimpleRate (size, halfLife)
     return out
 end
 
+
 function SpaceSaving:new (size, halfLife)
     local o    = SimpleRate(size, halfLife)
     local self = setmetatable(o, {__index = SpaceSaving})
     return self
 end
+
 
 function SpaceSaving:count(rate, lastTs, nowTs)
     local deltaNs = nowTs - lastTs
@@ -51,9 +54,11 @@ function SpaceSaving:count(rate, lastTs, nowTs)
     return rate * weight
 end
 
+
 function SpaceSaving:recount(rate, lastTs, nowTs)
     return rate * math_exp((nowTs - lastTs) * self.weightHelper)
 end
+
 
 function SpaceSaving:touch(key, nowTs)
     local olist = self.olist
@@ -102,6 +107,7 @@ function SpaceSaving:touch(key, nowTs)
     end
 end
 
+
 function SpaceSaving:getAll(nowTs)
     local olist = self.olist
     local elements = {}
@@ -123,6 +129,7 @@ function SpaceSaving:getAll(nowTs)
 
     return elements
 end
+
 
 function SpaceSaving:getSingle(key, nowTs)
     local olist = self.olist
